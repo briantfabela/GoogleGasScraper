@@ -9,16 +9,22 @@ Chevron 2491 W 16th St, Yuma, AZ 85364
 Chevron 2459 W 32nd St, Yuma, AZ 85364
 Chevron 10747 S Fortuna Rd, Yuma, AZ 85367
 Chevron 11379 S Fortuna Rd, Yuma, AZ 85367
+Chevron 6868 US-95, Yuma, AZ 85365
 Chevron Yuma 500 E 32nd St, Yuma, AZ 85365
 Chevron Yuma 2092 E 24th St, Yuma, AZ 85364
 Chevron Yuma 3919 S Avenue 3 E, Yuma, AZ 85365
 Chevron Yuma 6440 E 32nd St, Yuma, AZ 85365
+Chevron Somerton 110 E Main St, Somerton, AZ 85350
+Circle K 121 E Main St, Somerton, AZ 85350
+Circle K 7110 E, US-95, Yuma, AZ 85365
 Circle K 2409 S 8th Ave, Yuma, AZ 85364
 Circle K 2398 S Avenue B, Yuma, AZ 85364
 Circle K 2600 Araby Rd, Yuma, AZ 85365
 Circle K 6544 Old US Hwy 80, Yuma, AZ 85365
+Circle K 766 Main St, San Luis, AZ 85349
 Mobil 11235 S Fortuna Rd, Yuma, AZ 85367
 ARCO 950 E 16th St, Yuma, AZ 85365
+ARCO 770 William Brooks Ave, San Luis, AZ 85349
 Shell 796 S 4th Ave, Yuma, AZ 85364
 Fry's Fuel Center 2350 S 4th Ave, Yuma, AZ 85364
 Fry's Fuel Center 11203 East, S Frontage Rd, Yuma, AZ 85367
@@ -28,3 +34,5 @@ Speedway Gas Station 3200 E 32nd St, Yuma, AZ 85365
 Speedway Gas Station 3200 E 32nd St, Yuma, AZ 85365
 Flying J Travel 108000 N Frontage Rd, Yuma, AZ 885367
 Foothills Mini Mart 12870 S Foothills Blvd, Yuma, AZ 85367
+COCOPAH KORNER 15126 S Avenue B, Somerton, AZ 85350
+Super Gas & El Taco Loco 611 E Main St, Somerton, AZ 85350
