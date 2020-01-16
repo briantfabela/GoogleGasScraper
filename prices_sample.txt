@@ -1,0 +1,8 @@
+Diesel
+$3.30
+Regular
+$2.90
+Midgrade
+$3.30
+Premium
+$3.50
