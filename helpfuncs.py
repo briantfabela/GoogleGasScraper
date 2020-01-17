@@ -1,4 +1,4 @@
-# Python 3.7.1 - Briant J. Fabela (12/26/2019)
+# Python 3.7.1 - Briant J. Fabela (1/15/2020)
 
 from selenium import webdriver # selenium v3.141.0
 
@@ -13,6 +13,8 @@ from selenium.common.exceptions import TimeoutException
 
 from datetime import datetime
 from time import ctime
+from os import path, mkdir
+import csv
 
 def read_addresses(txt_file_path):
     '''Returns a text file of addresses as a python list'''
@@ -25,6 +27,36 @@ def get_latlong(url):
 
     x, y = url.split('/@')[1].split('/data=!')[0].split(',')[:2]
     return GeoInfo(x, y)
+
+def get_csv_writer(file_path, name):
+    """
+    Creates a csv file to a relative path and returns the csv.writer object.
+
+    If csv file does exists, it creates and returns the writer object. Also
+    handles FileNotFoundError by creating the directory if it does not exist.
+    
+    Args:
+        file_path (str): Relative file path from cwd
+        name (str): name of file including ".csv"
+        headers (lst): list of strings containing csv headers for creation
+    """
+
+    if not path.isdir(file_path): # if the directory does not exist
+        print("Directory does not exist")
+        mkdir(file_path) # create it
+        print(file_path, "created")
+
+    if not path.isfile(path.join(file_path, name)): # dir exists but not file
+        with open(path.join(file_path, name), 'w', newline='') as empty_csv:
+            csv_writer = csv.writer(empty_csv)
+        print(name, "created.")
+
+    else: # dir and file exist
+        print(name, "already exists.")
+        with open(path.join(file_path, name), 'w', newline='') as csv_file:
+            csv
+    return csv_writer
+
 
 class GeoInfo:
     '''Stores geographical data about a location visisted on google maps'''
