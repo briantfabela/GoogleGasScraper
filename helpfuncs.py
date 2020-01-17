@@ -37,8 +37,10 @@ def get_csv_writer(file_path, name):
     
     Args:
         file_path (str): Relative file path from cwd
-        name (str): name of file including ".csv"
-        headers (lst): list of strings containing csv headers for creation
+        name (str): name of file including '.csv'
+    
+    Returns:
+        '_csv.writer': returns CSV writer object
     """
 
     if not path.isdir(file_path): # if the directory does not exist
@@ -53,8 +55,9 @@ def get_csv_writer(file_path, name):
 
     else: # dir and file exist
         print(name, "already exists.")
-        with open(path.join(file_path, name), 'w', newline='') as csv_file:
-            csv
+        with open(path.join(file_path, name), 'a', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+
     return csv_writer
 
 
