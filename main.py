@@ -26,15 +26,31 @@ def make_nested_folders(path):
         return
 
     dir_path = os.path.normpath(path) # normalize path
-    path_list = dir_path.split(os.sep) # create list of folders in nested order
-    path_string = path_list[0] # initialize the first folder in our path
+    folder_list = dir_path.split(os.sep) # create list of folders in nested order
+    path_string = ''
 
-    for i in range(len(path_list)):
-        while os.path.isdir(path_string):
-            print("")
+    for folder in folder_list:
+
+        # update path and normalize
+        if len(path_string) is 0:
+            path_string += folder
+        else: # if not first directory in path_string add separator
+            path_string += "\\" + folder
+
+        path_string = os.path.normpath(path_string)
+
+        if os.path.isdir(path_string): # does the directory exist
+            print(path_string, 'already exists.')
+            pass
+        else:
+            os.mkdir(path_string)
+            print(path_string, "created.")
+
+        
+
         #TODO: use enumerate to use a for loop and access indexes in path_list
 
-        '''
+    '''
         if os.path.isdir(path_string):
             if i == len(path_list) - 1: # check if current loop is last index
                 print("boop!")
@@ -51,7 +67,7 @@ def make_nested_folders(path):
                 pass
             else:
                 path_list += "/" + path_list[i+1]
-        '''
+    '''
 
             
 
