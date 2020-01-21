@@ -30,7 +30,7 @@ def get_latlong(url):
 
 def get_csv_writer(file_path, name):
     """
-    Creates a csv file to a relative path and returns the csv.writer object.
+    Creates or opens a csv file and returns a csv.writer object.
 
     If csv file does exists, it creates and returns the writer object. Also
     handles FileNotFoundError by creating the directory if it does not exist.
@@ -45,7 +45,7 @@ def get_csv_writer(file_path, name):
 
     if not path.isdir(file_path): # if the directory does not exist
         print("Directory does not exist")
-        mkdir(file_path) # create it
+        mkdir(file_path) # create it # make_nested_folders() goes here
         print(file_path, "created")
 
     if not path.isfile(path.join(file_path, name)): # dir exists but not file
@@ -60,13 +60,12 @@ def get_csv_writer(file_path, name):
 
     return csv_writer
 
-
 class GeoInfo:
     '''Stores geographical data about a location visisted on google maps'''
 
     def __init__(self, x, y):
         self.lat = float(x)
-        self.long = float(y)
+        self.lon = float(y)
 
 class GasPrices:
     '''Stores fuel prices as scraped from google maps'''
@@ -94,7 +93,7 @@ class GasPriceChecker:
         return GasPrices(
             *[i.strip('$') for i in string.split() if '$' in i or '-' in i]
         )
-    
+
     def check(self, max_window=True, dims=(1080,800)):
         '''Opens the webridriver using Selenium.
 
@@ -120,7 +119,7 @@ class GasPriceChecker:
 
             field_button = find_by_xpath(self.xpaths['searchButton'])
             field_button.click() # click search button
-    
+
             try:
                 # wait for element to be visible
                 wait = WebDriverWait(self.driver, 5).until(
@@ -140,12 +139,12 @@ class GasPriceChecker:
 
                 # print all the info
                 print(loc, 
-                "Coords: "+str(self.geo.lat)+", "+str(self.geo.long),
+                "Coords: "+str(self.geo.lat)+", "+str(self.geo.lon),
                 "Disl: "+self.prices.diesel, 
                 "Regl: "+self.prices.regular,
                 "Midg: "+self.prices.midgrade,
                 "Perm: "+self.prices.premium, sep='\n')
-    
+
             except TimeoutException:
                 print("TimeoutException")
                 print(loc, "passed.")
@@ -166,7 +165,7 @@ def main():
         searchField = '//*[@id="searchboxinput"]',
         searchButton = '//*[@id="searchbox-searchbutton"]'
     )
-    
+
     x = GasPriceChecker('https://www.google.com/maps', xpaths, 'gas_stations.txt')
     x.check()
 
