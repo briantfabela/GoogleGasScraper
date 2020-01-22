@@ -8,25 +8,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 # tests
-from helpfuncs import create_csv
+from helpfuncs import create_csv, make_file_structure, read_addresses
 import csv
 import os
-
-def make_file_structure(zipcode):
-    """
-    Generates a file structure and csv files for fuel types to store price info
-
-    Does not provide validation that the zipcode exists.
-    
-    Args:
-        zipcode (str): 5-digit number string of a valid U.S. zip code
-    """
-
-    # create 'fuelprices/{zipcode} along with fueltype csv files, with headers'
-    path = os.path.join('fuel_prices', zipcode)
-
-    for fuel_type in ['diesel', 'regular', 'midgrade', 'premium']:
-        create_csv(path, fuel_type+'.csv')
 
 for zipcode in ['92231', '85364', '85365', '10082', '01234']:
     make_file_structure(zipcode)

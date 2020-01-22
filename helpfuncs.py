@@ -16,7 +16,7 @@ from time import ctime
 import os
 import csv
 
-def read_addresses(txt_file_path):
+def read_addresses(txt_file_path) -> []:
     '''Returns a text file of addresses as a python list'''
 
     addresses = open(txt_file_path) # file should have an address per line
@@ -72,7 +72,7 @@ def create_csv(file_path, name):
     
     Args:
         file_path (str): Relative file path from cwd
-        name (str): name of file including '.csv'
+        name (str): Name of file including '.csv'
     """
 
     if not os.path.isdir(file_path): # if the directory does not exist
@@ -87,6 +87,45 @@ def create_csv(file_path, name):
 
     else: # dir and file exist
         print(name, "already exists.")
+
+def make_file_structure(zipcode, fp='fuel_prices'):
+    """
+    Generates a file structure and csv files for fuel types to store price info
+
+    Also creates an empty '_gas_stations_{'zipcode'}.txt' file.
+    
+    Args:
+        zipcode (str): 5-digit number string of a valid U.S. zip code
+        fp (str): Directory where zipcode folders are stored. 
+    """
+
+    # create fuelprices/{zipcode} along with fueltype .csv files, with headers
+    path = os.path.join(fp, zipcode)
+
+    for fuel_type in ['diesel', 'regular', 'midgrade', 'premium']:
+        create_csv(path, fuel_type+'.csv')
+
+    # create empty _gas_stations_{'zipcode'}.txt
+    open(os.path.join(path, "_gas_stations_"+zipcode+".txt"), 'a').close()
+
+def populate_gas_stations(stations=20, fp='fuel_prices'):
+    """
+    Populates '_gas_stations_{zipcode}.txt' files in each zipcode folder inside
+    the root fp directory; dfault named 'fuel_prices'
+
+    Gas stations populated had fuel price information at the time of scraping
+
+    Gas stations addresses are saved in the following convention: 
+    {name}, {address}, {city}, {state} {zipcode}
+    
+    Args:
+        stations (int, optional): number of stations wanted. Defaults to 20.
+        fp (str, optional): directory of where zipcode folders are populated
+    """
+
+    # TODO: iterate through 'fuel_prices' or equivalent, zipcode folders
+    # TODO: scrape 
+    pass
 
 class GeoInfo:
     '''Stores geographical data about a location visisted on google maps'''
