@@ -13,7 +13,7 @@ from selenium.common.exceptions import TimeoutException
 
 from datetime import datetime
 from time import ctime
-from os import path, mkdir
+import os
 import csv
 
 def read_addresses(txt_file_path):
@@ -28,37 +28,65 @@ def get_latlong(url):
     x, y = url.split('/@')[1].split('/data=!')[0].split(',')[:2]
     return GeoInfo(x, y)
 
-def get_csv_writer(file_path, name):
+def make_nested_folders(path):
     """
-    Creates or opens a csv file and returns a csv.writer object.
+    Creates all of the non-existent directories in a relative path from cwd.
 
-    If csv file does exists, it creates and returns the writer object. Also
-    handles FileNotFoundError by creating the directory if it does not exist.
+    If any directories already exist they are skipped and not overwritten.
+    
+    Args:
+        path (str): relative file path of non-existent subfolders folders.
+    """
+
+    # check for minimal length and str type
+    if len(path) < 0 or not isinstance(path, str):
+        print("path needs to be a string of character length 1 or longer.")
+        return
+
+    dir_path = os.path.normpath(path) # normalize path
+    folder_list = dir_path.split(os.sep) # create list of folders in nested order
+    path_string = ''
+
+    for folder in folder_list:
+
+        # update path and normalize
+        if len(path_string) is 0:
+            path_string += folder
+        else: # if not first directory in path_string add separator
+            path_string += "\\" + folder
+
+        path_string = os.path.normpath(path_string)
+
+        if os.path.isdir(path_string): # does the directory exist
+            print(path_string, 'already exists.')
+            pass
+        else:
+            os.mkdir(path_string) # if not create it
+            print(path_string, "created.")
+
+def create_csv(file_path, name):
+    """
+    Creates csv file at a nested subfolder folder path.
+
+    It also creates any folders in that path if they do not exist.
     
     Args:
         file_path (str): Relative file path from cwd
         name (str): name of file including '.csv'
-    
-    Returns:
-        '_csv.writer': returns CSV writer object
     """
 
-    if not path.isdir(file_path): # if the directory does not exist
+    if not os.path.isdir(file_path): # if the directory does not exist
         print("Directory does not exist")
-        mkdir(file_path) # create it # make_nested_folders() goes here
+        make_nested_folders(file_path)
         print(file_path, "created")
 
-    if not path.isfile(path.join(file_path, name)): # dir exists but not file
-        with open(path.join(file_path, name), 'w', newline='') as empty_csv:
-            csv_writer = csv.writer(empty_csv)
+    if not os.path.isfile(os.path.join(file_path, name)): # dir exists but not file
+        with open(os.path.join(file_path, name), 'w', newline='') as empty_csv:
+            pass
         print(name, "created.")
 
     else: # dir and file exist
         print(name, "already exists.")
-        with open(path.join(file_path, name), 'a', newline='') as csv_file:
-            csv_writer = csv.writer(csv_file)
-
-    return csv_writer
 
 class GeoInfo:
     '''Stores geographical data about a location visisted on google maps'''
@@ -75,7 +103,7 @@ class GasPrices:
         self.regular = reg
         self.midgrade = mid
         self.premium = premium
-        # timestamp will be in local time (MST for me)
+        # timestamp will be in local time
         self.timestamp = ctime(datetime.now().timestamp())
 
 class GasPriceChecker:

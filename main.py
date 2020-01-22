@@ -7,69 +7,38 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import helpfuncs
+# tests
+from helpfuncs import create_csv
+import csv
 import os
 
-def make_nested_folders(path):
+def make_file_structure(zipcode):
     """
-    Creates all of the non-existent directories in a relative path from cwd.
+    Generates a file structure and csv files for fuel types to store price info
 
-    If any directories already exist they are skipped and not overwritten.
+    Does not provide validation that the zipcode exists.
     
     Args:
-        path (str): relative file path of non-existent subfolders folders.
+        zipcode (str): 5-digit number string of a valid U.S. zip code
     """
 
-    # check for minimal length and str type
-    if len(path) < 0 or not isinstance(path, str):
-        print("path needs to be a string of character length 1 or longer.")
-        return
+    # create 'fuelprices/{zipcode} along with fueltype csv files, with headers'
+    path = os.path.join('fuel_prices', zipcode)
 
-    dir_path = os.path.normpath(path) # normalize path
-    folder_list = dir_path.split(os.sep) # create list of folders in nested order
-    path_string = ''
+    for fuel_type in ['diesel', 'regular', 'midgrade', 'premium']:
+        create_csv(path, fuel_type+'.csv')
 
-    for folder in folder_list:
+for zipcode in ['92231', '85364', '85365', '10082', '01234']:
+    make_file_structure(zipcode)
 
-        # update path and normalize
-        if len(path_string) is 0:
-            path_string += folder
-        else: # if not first directory in path_string add separator
-            path_string += "\\" + folder
+'''
+helpfuncs.create_csv('fuel_prices/92231', 'diesel.csv')
 
-        path_string = os.path.normpath(path_string)
+headers = ['timestamp', 'Chevron 123 Main Street']
+body  = ['01/01/2020', '3.49']
 
-        if os.path.isdir(path_string): # does the directory exist
-            print(path_string, 'already exists.')
-            pass
-        else:
-            os.mkdir(path_string)
-            print(path_string, "created.")
-
-        
-
-        #TODO: use enumerate to use a for loop and access indexes in path_list
-
-    '''
-        if os.path.isdir(path_string):
-            if i == len(path_list) - 1: # check if current loop is last index
-                print("boop!")
-                pass
-            else:
-                print(path_string, "already exists")
-                path_string += "/" + path_list[i+1]
-                path_string = os.path.normpath(path_string)
-                print(path_string)
-        else:
-            os.mkdir(path_string)
-
-            if i == len(path_list) - 1:
-                pass
-            else:
-                path_list += "/" + path_list[i+1]
-    '''
-
-            
-
-
-make_nested_folders('folder/subfolder/another_folder/final_folder')
+with open('fuel_prices/92231/diesel.csv', 'w', newline='') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    for row in [headers, body]:
+        csv_writer.writerow(row)
+'''
