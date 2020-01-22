@@ -106,6 +106,7 @@ def make_file_structure(zipcode, fp='fuel_prices'):
         create_csv(path, fuel_type+'.csv')
 
     # create empty _gas_stations_{'zipcode'}.txt
+    # if it exists it will not be modified
     open(os.path.join(path, "_gas_stations_"+zipcode+".txt"), 'a').close()
 
 def populate_gas_stations(stations=20, fp='fuel_prices'):
@@ -124,7 +125,9 @@ def populate_gas_stations(stations=20, fp='fuel_prices'):
     """
 
     # TODO: iterate through 'fuel_prices' or equivalent, zipcode folders
-    # TODO: scrape 
+    #       get all the _gas_stations_{'zipcode'}.txt file paths
+    # TODO: scrape per zipcode
+    # TODO: write results to each zipcode's gas station txt file
     pass
 
 class GeoInfo:
