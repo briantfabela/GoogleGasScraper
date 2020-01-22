@@ -229,15 +229,15 @@ class GasPriceChecker:
 
         print("Tour has ended.")
 
-# test code
-def main():
-    xpaths = dict(
-        searchField = '//*[@id="searchboxinput"]',
-        searchButton = '//*[@id="searchbox-searchbutton"]'
-    )
+class GasStationScraper:
 
-    x = GasPriceChecker('https://www.google.com/maps', xpaths, 'gas_stations.txt')
-    x.check()
-
-if __name__ == "__main__":
-    main()
+    def __init__(self, fp, zipcode, stations=20):
+        """
+        Uses selenium to scrape gas station addresses in and around a zip code
+        in Google Maps.
+        
+        Args:
+            fp (str): file path of '_gas_stations_{zipcode}.txt' file.
+            zipcode ([type]): ZIP code from which stations will be scraped.
+            stations (int, optional): number of stations to be scraped.
+        """
