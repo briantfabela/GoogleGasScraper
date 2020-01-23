@@ -12,10 +12,19 @@ from helpfuncs import create_csv, make_file_structure, read_addresses
 import csv
 import os
 
-for zipcode in ['92231', '85364', '85365', '10082', '01234']:
-    make_file_structure(zipcode)
+from helpfuncs import GasStationScraper
+
+gas_txt_path = 'fuel_prices\85364\_gas_stations_85364.txt'
+zipcode = '85364'
+
+gss = GasStationScraper(gas_txt_path, zipcode)
+gss.scrape()
 
 '''
+
+for zipcode in ['85364']:
+    make_file_structure(zipcode)
+
 helpfuncs.create_csv('fuel_prices/92231', 'diesel.csv')
 
 headers = ['timestamp', 'Chevron 123 Main Street']
@@ -26,3 +35,4 @@ with open('fuel_prices/92231/diesel.csv', 'w', newline='') as csv_file:
     for row in [headers, body]:
         csv_writer.writerow(row)
 '''
+

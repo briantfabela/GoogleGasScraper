@@ -151,6 +151,11 @@ class GasPrices:
 class GasPriceChecker:
     '''Uses the selenium driver to visit a list of gas station addresses'''
 
+    xpaths = dict(
+        searchField = '//*[@id="searchboxinput"]',
+        searchButton = '//*[@id="searchbox-searchbutton"]'
+    )
+
     def __init__(self, url, xpaths, addresses_txt_file_path):
         self.url = url
         self.xpaths = xpaths # xpath dictionary
@@ -208,9 +213,9 @@ class GasPriceChecker:
                 self.geo = get_latlong(self.driver.current_url)
 
                 # print all the info
-                print(loc, 
+                print(loc,
                 "Coords: "+str(self.geo.lat)+", "+str(self.geo.lon),
-                "Disl: "+self.prices.diesel, 
+                "Disl: "+self.prices.diesel,
                 "Regl: "+self.prices.regular,
                 "Midg: "+self.prices.midgrade,
                 "Perm: "+self.prices.premium, sep='\n')
@@ -231,7 +236,7 @@ class GasPriceChecker:
 
 class GasStationScraper:
 
-    def __init__(self, fp, zipcode, stations=20):
+    def __init__(self, txt_fp, zipcode, stations=20):
         """
         Uses selenium to scrape gas station addresses in and around a zip code
         in Google Maps.
@@ -241,3 +246,125 @@ class GasStationScraper:
             zipcode ([type]): ZIP code from which stations will be scraped.
             stations (int, optional): number of stations to be scraped.
         """
+
+        self.url = 'https://www.google.com/maps'
+        self.xpaths = dict(
+            searchField = '//*[@id="searchboxinput"]',
+            searchButton = '//*[@id="searchbox-searchbutton"]'
+        )
+        self.gas_txt_fp = txt_fp # relative path '_gas_stations_{zipcode}.txt'
+        self.driver_fp = r'chromedriver_win32/chromedriver_v79.exe'
+        self.scrape_depth = stations # how many stations to scrape in total
+        self.zipcode = zipcode
+
+    def add_gas_station(self, name, address):
+        """
+        Using the scraped name and address information it adds the gas station
+        as a new line in the '_gas_stations_{zipcode}.txt' file.
+
+        Text file entry convention:
+        {Biz name}, {#} {Street}, {City}, {State} {ZIP code}
+        
+        Args:
+            name (str): Business name of the gas station.
+            address ([type]): Full address including city, state and zipcode.
+        """
+
+        pass
+
+    def scrape(self, max_window=True, dims=(1080,800)):
+        """
+        After opening the driver it begins parsing thru 'gas staion' search
+        results after a ZIP code search. It idenitified gas stations with fuel
+        price data and begins scraping their name and address, and then
+        ppulates the '_gas_stations_{zipcode}.txt' file.
+        '''
+        
+        Args:
+            max_window (bool, optional): Maximize window. Defaults to True.
+            dims (tuple, optional): Window dimensions. Defaults to (1080,800).
+        """
+        self.driver = webdriver.Chrome(self.driver_fp) # open web browser
+
+        # set window size
+        if max_window: 
+            self.driver.maximize_window()
+        else:
+            self.driver.set_window_size(*dims)
+
+        # go to url
+        self.driver.get(self.url)
+
+        # do zip code search
+        find_by_xpath = self.driver.find_element_by_xpath # shorten func call
+        field = find_by_xpath(self.xpaths['searchField'])
+        field.send_keys(self.zipcode) # type in zipcode
+
+        field_button = find_by_xpath(self.xpaths['searchButton'])
+        field_button.click() # click search button
+
+        # wait for search field to be interactable before clearing field
+        wait = WebDriverWait(self.driver, 3).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, self.xpaths['searchField'])
+            )
+        )
+
+        # do gas stations search
+        field.clear()
+        field.send_keys('gas sations')
+
+        field_button.click()
+
+        # wait for 'section-result' elements to load before scraping
+        wait = WebDriverWait(self.driver, 3).until(
+            EC.visibility_of_all_elements_located(
+                (By.CLASS_NAME, 'section-result')
+            )
+        )
+
+        gas_stations_results = self.driver.find_elements_by_class_name('section-result')
+
+        # parse the search results to get the element id
+        
+        # clean the results for only gas stations with fuel prices
+
+        #print(type(gas_stations_results)) # find_elements_... yields a list
+        #print(type(gas_stations_results[0])) # class 'selenium.webdriver.remote.webelement.WebElement'
+        print(gas_stations_results[0].get_attribute('innerHTML'))
+
+        #print(gas_stations_results)
+
+        # generate an iterable that populates n number of gas stations
+        # iterate through the 
+
+# class="maps-sprite-categorical-justifications-gas-station" <- gas pump icon
+#                                                               indicates prices
+''' dir() of:
+<class 'selenium.webdriver.remote.webelement.WebElement'>
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', 
+'__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', 
+'__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', 
+'__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_execute', '_id', '_parent', '_upload', 
+'_w3c', 'clear', 'click', 'find_element', 'find_element_by_class_name', 'find_element_by_css_selector', 
+'find_element_by_id', 'find_element_by_link_text', 'find_element_by_name', 
+'find_element_by_partial_link_text', 'find_element_by_tag_name', 'find_element_by_xpath', 
+'find_elements', 'find_elements_by_class_name', 'find_elements_by_css_selector', 'find_elements_by_id', 
+'find_elements_by_link_text', 'find_elements_by_name', 'find_elements_by_partial_link_text', 
+'find_elements_by_tag_name', 'find_elements_by_xpath', 'get_attribute', 'get_property', 'id', 
+'is_displayed', 'is_enabled', 'is_selected', 'location', 'location_once_scrolled_into_view', 'parent', 
+'rect', 'screenshot', 'screenshot_as_base64', 'screenshot_as_png', 'send_keys', 'size', 'submit', 
+'tag_name', 'text', 'value_of_css_property']
+'''
+
+
+'''
+def test():
+    xpaths = dict(
+        searchField = '//*[@id="searchboxinput"]',
+        searchButton = '//*[@id="searchbox-searchbutton"]'
+    )
+
+    x = GasPriceChecker('https://www.google.com/maps', xpaths, 'gas_stations.txt')
+    x.check()
+'''
