@@ -344,6 +344,11 @@ class GasStationScraper:
 
             for i in range(len(gas_stations)):
 
+                # TODO: implement custom wait for final url to show up that looks like this:
+                # https://www.google.com/maps/search/gas+stations/@32.694679,-114.660573,12z/data=!3m1!4b1
+
+                # copy the url
+
                 # wait for 'section-result' elements to load before selecting
                 wait = WebDriverWait(self.driver, 3).until(
                     EC.visibility_of_all_elements_located(
@@ -384,6 +389,11 @@ class GasStationScraper:
 
                     scraped_stations.append(gs) # add GasStation to list
                     scrape_count += 1
+
+                    # TODO: instead of going back go to the url that was saved outside thetry statement
+                    # Alternatively save the links of each gas station w/ fuel price data as your parse 
+                    # through the search results page, and once done go to those urls in iteration to
+                    # scrape that gas stations name and full address
 
                     # go back to results page via js script
                     self.driver.execute_script("window.history.go(-1)")
