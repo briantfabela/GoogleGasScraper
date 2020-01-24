@@ -10,6 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 # Selenium exception handling
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import ElementClickInterceptedException
 
 from datetime import datetime
 from time import ctime
@@ -234,6 +236,21 @@ class GasPriceChecker:
 
         print("Tour has ended.")
 
+class GasStation:
+
+    def __init__(self, name, st_address):
+        """
+        Stores information for gas station results as they are being scraped
+        
+        Args:
+            name (str): Business name of gas station.
+            st_address (str): Street address of gas station.
+        """
+
+        self.bizname = name
+        self.st_address = st_address # {Num} {Pre-direct} {St Name} {St type}
+        self.has_prices = False # default; will change while scraping if True
+
 class GasStationScraper:
 
     def __init__(self, txt_fp, zipcode, stations=20):
@@ -312,34 +329,82 @@ class GasStationScraper:
 
         # do gas stations search
         field.clear()
-        field.send_keys('gas sations')
-
+        field.send_keys('gas stations')
         field_button.click()
 
-        # wait for 'section-result' elements to load before scraping
-        wait = WebDriverWait(self.driver, 3).until(
-            EC.visibility_of_all_elements_located(
-                (By.CLASS_NAME, 'section-result')
+        scrape_count = 0
+        while scrape_count < self.scrape_depth:
+
+            # wait for 'section-result' elements to load before scraping
+            wait = WebDriverWait(self.driver, 3).until(
+                EC.visibility_of_all_elements_located(
+                    (By.CLASS_NAME, 'section-result')
+                )
             )
-        )
 
-        gas_stations_results = self.driver.find_elements_by_class_name('section-result')
+            gas_stations = self.driver.find_elements_by_class_name(
+                'section-result' # get all section results
+            )
 
-        # parse the search results to get the element id
+            for result in gas_stations:
+                # shorten call
+                find_class_name = result.find_element_by_class_name
+
+                try: # compile 'section-result' gas station info into class
+                    gs = GasStation(
+                        find_class_name('section-result-title').text, # name
+                        find_class_name('section-result-location').text # loc
+                    )
+                except:
+                    print("gas station name or address could not be located.")
+
+                try: # check for gas price availability
+                    gs.has_prices = bool(
+                        find_class_name('section-result-annotation')
+                    )
+                    scrape_count += 1
+                except NoSuchElementException: # no gas prices found in element
+                    pass
+                except StaleElementReferenceException: # element not found
+                    pass
+
+                print(gs.bizname, gs.st_address, 'has prices?', gs.has_prices)
+            
+                # when the amount of stations with fuel price wanted
+                if scrape_count == self.scrape_depth:
+                    break
+                    #TODO: what to do when scrape_depth is rached? quit browser?
+            
+            try:
+                next_button = self.driver.find_element_by_xpath(
+                    '//*[@id="n7lv7yjyC35__section-pagination-button-next"]'
+                ) # click 'next' button for 2nd page of gas station results
+                next_button.click()
+            except NoSuchElementException:
+                print("NoSuchElementException: Last Page Reached.")
+                break
+            except StaleElementReferenceException:
+                print("StaleElementReferenceException: Last Page Reached.")
+                break
+            except ElementClickInterceptedException:
+                print("ElementClickInterceptedException: Last Page Reached.")
+                break
+
+            #self.driver.execute_script("window.history.go(-1)")
         
-        # clean the results for only gas stations with fuel prices
+        # after reaching scape_depth write gas stations addresses to text file
+        print("Total stations scraped:", scrape_count)
 
         #print(type(gas_stations_results)) # find_elements_... yields a list
-        #print(type(gas_stations_results[0])) # class 'selenium.webdriver.remote.webelement.WebElement'
-        print(gas_stations_results[0].get_attribute('innerHTML'))
+        #class 'selenium.webdriver.remote.webelement.WebElement'
+        #print(type(gas_stations_results[0]))
+        #print(gas_stations_results[0].get_attribute('innerHTML'))
 
         #print(gas_stations_results)
 
         # generate an iterable that populates n number of gas stations
         # iterate through the 
 
-# class="maps-sprite-categorical-justifications-gas-station" <- gas pump icon
-#                                                               indicates prices
 ''' dir() of:
 <class 'selenium.webdriver.remote.webelement.WebElement'>
 ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', 
@@ -355,16 +420,4 @@ class GasStationScraper:
 'is_displayed', 'is_enabled', 'is_selected', 'location', 'location_once_scrolled_into_view', 'parent', 
 'rect', 'screenshot', 'screenshot_as_base64', 'screenshot_as_png', 'send_keys', 'size', 'submit', 
 'tag_name', 'text', 'value_of_css_property']
-'''
-
-
-'''
-def test():
-    xpaths = dict(
-        searchField = '//*[@id="searchboxinput"]',
-        searchButton = '//*[@id="searchbox-searchbutton"]'
-    )
-
-    x = GasPriceChecker('https://www.google.com/maps', xpaths, 'gas_stations.txt')
-    x.check()
 '''
