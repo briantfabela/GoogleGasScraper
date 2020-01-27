@@ -243,7 +243,7 @@ class GasStation:
         Stores information for gas station results as they are being scraped
         """
 
-        self.has_prices = False # default; will change while scraping if True
+        self.has_prices = True # default; will change while scraping if True
 
 class GasStationScraper:
 
@@ -326,10 +326,16 @@ class GasStationScraper:
         field.send_keys('gas stations')
         field_button.click()
 
-        scrape_count = 0 # keep track of scraped addresses
         scraped_stations = [] # store the stations with fuel price information
 
-        while scrape_count < self.scrape_depth:
+        wait = WebDriverWait(self.driver, 6).until( # wait for full url to load
+            EC.url_contains("data=!3m1!4b1")
+        )
+
+        # search results url
+        results_page_url = self.driver.current_url
+
+        while len(scraped_stations) < self.scrape_depth:
 
             # wait for 'section-result' elements to load before scraping
             wait = WebDriverWait(self.driver, 3).until(
@@ -344,27 +350,14 @@ class GasStationScraper:
 
             for i in range(len(gas_stations)):
 
-                # TODO: implement custom wait for final url to show up that looks like this:
-                # https://www.google.com/maps/search/gas+stations/@32.694679,-114.660573,12z/data=!3m1!4b1
-
-                # copy the url
-
-                # wait for 'section-result' elements to load before selecting
-                wait = WebDriverWait(self.driver, 3).until(
-                    EC.visibility_of_all_elements_located(
-                        (By.CLASS_NAME, 'section-result')
-                    )
-                )
-
-                gas_stations = self.driver.find_elements_by_class_name(
-                    'section-result' # get all section results
-                )
-
                 # shorten call
                 find_class_name = gas_stations[i].find_element_by_class_name
+                # get gas station name for debugging
+                station_name = find_class_name('section-result-title').text
 
                 try: # check for gas price availability
                     has_info = find_class_name('section-result-annotation')
+                    gs = GasStation()
                     gas_stations[i].click()
 
                     # wait for address info to load
@@ -372,61 +365,61 @@ class GasStationScraper:
                         EC.visibility_of_all_elements_located(
                             (By.CLASS_NAME, 'section-info-line')
                         )
-                    )      
-
-                    gs = GasStation()
-
-                    if has_info:
-                        gs.has_prices = True
-
-                    gs.name = self.driver.find_elements_by_class_name(
-                        'GLOBAL__gm2-headline-5 section-hero-header-title-title'
                     )
+
+                    gs.name = station_name
 
                     gs.address = self.driver.find_elements_by_class_name(
                         'section-info-line'
-                    )[0].text # save full address
+                    )[0].text # gas station full address
+
+                    gs.url = self.driver.current_url # url for gas station
 
                     scraped_stations.append(gs) # add GasStation to list
-                    scrape_count += 1
 
-                    # TODO: instead of going back go to the url that was saved outside thetry statement
-                    # Alternatively save the links of each gas station w/ fuel price data as your parse 
-                    # through the search results page, and once done go to those urls in iteration to
-                    # scrape that gas stations name and full address
+                    #debug
+                    print(gs.name, gs.address, gs.has_prices)
 
-                    # go back to results page via js script
-                    self.driver.execute_script("window.history.go(-1)")
-                    print("went back")
+                    self.driver.get(results_page_url)
 
                     wait = WebDriverWait(self.driver, 3).until(
                         EC.visibility_of_all_elements_located(
                             (By.CLASS_NAME, 'section-result')
                         )
                     )
+                    
+                    gas_stations = self.driver.find_elements_by_class_name(
+                        'section-result' # get all section results
+                    )
 
                 except ElementClickInterceptedException:
                     print("ElementClickInterceptedException: @ has_info")
                     pass
                 except NoSuchElementException: # no gas prices found in element
-                    print("NoSuchElementException @ has_info")
+                    print("NoSuchElementException @ has_info for:", station_name)
                     pass
                 except StaleElementReferenceException: # element not found
                     print("StaleElementReferenceException @ has_info")
                     pass
 
                 # when the amount of stations with fuel price wanted
-                if scrape_count == self.scrape_depth:
+                if len(scraped_stations) == self.scrape_depth:
                     break
 
             try:
-                if scrape_count == self.scrape_depth: # skip
-                    pass
+                if len(scraped_stations) == self.scrape_depth: # skip
+                    break
 
                 next_button = self.driver.find_element_by_xpath(
                     '//*[@id="n7lv7yjyC35__section-pagination-button-next"]'
                 ) # click 'next' button for 2nd page of gas station results
                 next_button.click()
+
+                wait = WebDriverWait(self.driver, 6).until( # wait for full url to load
+                    EC.url_contains("data=!3m1!4b1")
+                )
+
+                results_page_url = self.driver.current_url # search results url
 
             except NoSuchElementException:
                 print("NoSuchElementException: Last Page Reached.")
@@ -437,13 +430,9 @@ class GasStationScraper:
             except ElementClickInterceptedException:
                 print("ElementClickInterceptedException: Last Page Reached.")
                 break
-
-            #self.driver.execute_script("window.history.go(-1)")
         
         # after reaching scape_depth write gas stations addresses to text file
-        print("Total stations scraped:", scrape_count)
         print("gs list length:", len(scraped_stations))
-        print(scraped_stations[0].address)
 
 
 ''' dir() of:
