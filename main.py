@@ -15,8 +15,8 @@ from helpfuncs import GasStationScraper
 gas_txt_path = os.path.normpath('fuel_prices\85364\_gas_stations_85364.txt')
 zipcode = '85364'
 
-gss = GasStationScraper(gas_txt_path, zipcode, 80)
-gss.scrape()
+gss = GasStationScraper(gas_txt_path, zipcode, 20)
+gss.scrape_results()
 
 '''
 for zipcode in ['85364']:

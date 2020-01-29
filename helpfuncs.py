@@ -267,6 +267,77 @@ class GasStationScraper:
         self.driver_fp = r'chromedriver_win32/chromedriver_v79.exe'
         self.scrape_depth = stations # how many stations to scrape in total
         self.zipcode = zipcode
+    
+    def find_and_click_field(self, field_xpath, button_xpath, field_input, clear=False):
+        """
+        Finds field element, sends keys, and clicks the search button
+        
+        Args:
+            field_xpath (str): XPATH for input field elements.
+            button_xpath (str): XPATH for search button element.
+            field_input (str): Text that will be typed into search field.
+            clear (bool): Wait for searchfield to be clickable and clear it.
+        """
+
+        find_by_xpath = self.driver.find_element_by_xpath # shorten func call
+        field = find_by_xpath(field_xpath)
+
+        if clear: # wait and clear field
+            wait = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, self.xpaths['searchField'])
+                )
+            )
+            field.clear()
+
+        field.send_keys(field_input)
+        
+        button = find_by_xpath(button_xpath)
+        button.click()
+
+    def init_driver(self, max_window, dims):
+        """
+        Initializes the driver and sets window parameters.
+        
+        Args:
+            max_window (bool): [description]
+            dims (tuple): Window dimensions if not max_window
+        """
+        self.driver = webdriver.Chrome(self.driver_fp) # open web browser
+
+        # set window size
+        if max_window: 
+            self.driver.maximize_window()
+        else:
+            self.driver.set_window_size(*dims)
+
+        # go to url
+        self.driver.get(self.url)
+
+    def get_results(self):
+        """
+        Scrapes and parses gas stations search results until self.scrape_depth
+        is reached and returns a list of the results as GasStation Objects.
+
+        Returns:
+            lst: returns GasStation objects with name and st address data
+        """
+
+        wait = WebDriverWait(self.driver, 3).until(
+            EC.visibility_of_all_elements_located(
+                (By.CLASS_NAME, 'section-result')
+            )
+        )
+
+        gas_stations = self.driver.find_elements_by_class_name(
+            'section-result' # get all section results
+        )
+
+        for station in gas_stations:
+            try:
+                has_prices = find_class_name('section-result-annotation')
+                #TODO: continue here
+
 
     def add_gas_station(self, name, address):
         """
@@ -282,6 +353,31 @@ class GasStationScraper:
         """
 
         pass
+
+    #TODO: reconsider just scraping the station name and street address from results page
+    #      then search these out through the search bar and individually instead of iterating
+    #      through a url which may change
+
+    def scrape_results(self, max_window=True, dims=(800,800)):
+        """
+        Iterates through the results page and saves the name and street address
+        
+        Args:
+            max_window (bool, optional): Maximize window. Defaults to True.
+            dims (tuple, optional): Window dimensions. Defaults to (800,800).
+        """
+        self.init_driver(max_window, dims) # start driver to url and set window
+
+
+        for search in [self.zipcode, 'gas stations']: # search for zip and gas
+            self.find_and_click_field(
+                self.xpaths['searchField'],
+                self.xpaths['searchButton'],
+                search,
+                True # wait and clear the search field
+            )
+
+        #TODO: Continue HERE
 
     def scrape(self, max_window=True, dims=(1080,800)):
         """
