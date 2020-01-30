@@ -14,7 +14,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import ElementClickInterceptedException
 
 from datetime import datetime
-from time import ctime
+from time import ctime, sleep
 import os
 import csv
 
@@ -329,15 +329,55 @@ class GasStationScraper:
             )
         )
 
-        gas_stations = self.driver.find_elements_by_class_name(
-            'section-result' # get all section results
-        )
+        scraped_stations = []
+        gas_stations = self.driver.find_elements_by_class_name('section-result')
 
-        for station in gas_stations:
-            try:
-                has_prices = find_class_name('section-result-annotation')
-                #TODO: continue here
+        while len(scraped_stations) < self.scrape_depth:
 
+            gas_stations = self.driver.find_elements_by_class_name(
+                'section-result'
+            )
+
+            for result_index, station in enumerate(gas_stations):
+                print("result_index:", result_index)
+                find_class_name = station.find_element_by_class_name
+                biz_name = find_class_name('section-result-title').text
+
+                try: # if prices element is present
+                    find_class_name('section-result-annotation')
+                except NoSuchElementException:
+                    print(biz_name, "has no fuel price information available.")
+                else:
+                    gs = GasStation()
+                    gs.name = biz_name
+                    gs.st_ad = find_class_name('section-result-location').text
+                    scraped_stations.append(gs)
+
+                if len(scraped_stations) == self.scrape_depth:
+                    break
+
+                if result_index == len(gas_stations) - 1:
+                    print("Next Page.")
+                    self.next_page()
+
+        return scraped_stations
+
+    def next_page(self):
+        '''Click the 'Next Page on Google Maps search results page.'''
+
+        try:
+            next_button = self.driver.find_element_by_xpath(
+                '//*[@id="n7lv7yjyC35__section-pagination-button-next"]'
+            ) # click 'next' button for 2nd page of gas station results
+            next_button.click()
+        except StaleElementReferenceException:
+            print("StaleElementReferenceException: Last Page Reached?")
+            pass
+        except ElementClickInterceptedException:
+            print("ElementClickInterceptedException: Last Page Reached?")
+            pass
+        else:
+            sleep(2.1)
 
     def add_gas_station(self, name, address):
         """
@@ -368,7 +408,6 @@ class GasStationScraper:
         """
         self.init_driver(max_window, dims) # start driver to url and set window
 
-
         for search in [self.zipcode, 'gas stations']: # search for zip and gas
             self.find_and_click_field(
                 self.xpaths['searchField'],
@@ -377,9 +416,55 @@ class GasStationScraper:
                 True # wait and clear the search field
             )
 
-        #TODO: Continue HERE
+        self.gs_list = self.get_results() # gas station list
 
-    def scrape(self, max_window=True, dims=(1080,800)):
+        # and get full address
+        # TODO: sometimes during multi-page scraping ads will make duplicates
+        for g in self.gs_list:
+            self.find_and_click_field(
+                self.xpaths['searchField'],
+                '//*[@id="searchbox-searchbutton"]',
+                ' '.join([g.name, g.st_ad]), # concactenate name and st address
+                True
+            )
+            try:
+                wait = WebDriverWait(self.driver, 2).until(
+                    EC.visibility_of_all_elements_located(
+                        (By.CLASS_NAME, 'section-info-line')
+                    ) # wait for info to load in sidebar
+                )
+            except TimeoutException:
+                # in case of multiple results, click the first top one
+                try:
+                    # usually this is the right xpath
+                    self.driver.find_element_by_xpath(
+                    '//*[@id="pane"]/div/div[1]/div/div/div[4]/div[1]/div[1]'
+                    ).click()
+                except:
+                    # sometimes the above xpath does not work
+                    self.driver.find_element_by_xpath(
+                    '//*[@id="pane"]/div/div[1]/div/div/div[2]/div[1]/div[1]'
+                    ).click()
+                finally:
+                    wait = WebDriverWait(self.driver, 2).until(
+                        EC.visibility_of_all_elements_located(
+                            (By.CLASS_NAME, 'section-info-line')
+                        ) # wait for info to load in sidebar
+                    )
+
+            g.address = self.driver.find_element_by_class_name(
+                'section-info-line'
+            ).text # get full address
+
+        # debug
+        for g in self.gs_list:
+            print(g.name, g.address)
+        
+
+
+
+
+    def scrape(self, max_window=True, dims=(1000,800)):
         """
         After opening the driver it begins parsing thru 'gas staion' search
         results after a ZIP code search. It idenitified gas stations with fuel
